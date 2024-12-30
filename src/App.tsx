@@ -42,7 +42,7 @@ function AppRouter() {
         <Route path="/login">
           {auth.currentUser
             ? <Redirect to="/matches" />
-            : <Login initialValues={{ email: 'alice@playtomic.io' }}/>}
+            : <Login initialValues={{ email: 'alice@playtomic.io', password: 'MySuperSecurePassword' }}/>}
         </Route>
       
         <Route path="/matches">

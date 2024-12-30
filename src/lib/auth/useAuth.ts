@@ -1,4 +1,4 @@
-import { Auth } from './types'
+import { Auth } from "./types";
 import { useApiFetcher } from "../api";
 
 /**
@@ -8,14 +8,14 @@ import { useApiFetcher } from "../api";
  * @throws {TypeError} if called from a component not descendant of AuthProvider
  */
 function useAuth(): Auth {
-   const fetcher = useApiFetcher();
+  const fetcher = useApiFetcher();
 
   return {
     tokens: null,
     currentUser: null,
     async login(credentials) {
       const { email, password } = credentials;
-	  const res = await fetcher("POST /v3/auth/login", {
+      const res = await fetcher("POST /v3/auth/login", {
         data: { email, password },
       });
       if (!res.ok) {
@@ -27,15 +27,15 @@ function useAuth(): Auth {
         typeof res.data.refreshToken === "string" &&
         typeof res.data.refreshTokenExpiresAt === "string"
       ) {
-		return Promise.resolve();
+        return Promise.resolve();
       } else {
         throw new Error("Not matching data from the API.");
       }
     },
     logout() {
-      return Promise.reject(new Error('Not yet implemented'))
+      return Promise.reject(new Error("Not yet implemented"));
     },
-  }
+  };
 }
 
-export { useAuth }
+export { useAuth };
