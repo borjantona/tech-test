@@ -14,6 +14,14 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 
+export interface downloadObjectInterface {
+  Sport: string;
+  Day: string;
+  "Start hour": string;
+  "End hour": string;
+  Players: string;
+}
+
 const DATE_OPTIONS = ["All time", "Last 3 months", "Custom date"];
 const MOCK_USERS: User[] = [
   {
