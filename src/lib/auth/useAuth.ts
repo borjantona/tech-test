@@ -1,5 +1,6 @@
 import { Auth } from "./types";
 import { useApiFetcher } from "../api";
+import { useAuthContext } from "./useAuthContext";
 
 /**
  * Returns the current auth state. See {@link Auth} for more information on
@@ -9,9 +10,10 @@ import { useApiFetcher } from "../api";
  */
 function useAuth(): Auth {
   const fetcher = useApiFetcher();
+  const { tokens, setTokens } = useAuthContext();
 
   return {
-    tokens: null,
+    tokens,
     currentUser: null,
     async login(credentials) {
       const { email, password } = credentials;
@@ -27,6 +29,12 @@ function useAuth(): Auth {
         typeof res.data.refreshToken === "string" &&
         typeof res.data.refreshTokenExpiresAt === "string"
       ) {
+		if (setTokens) setTokens({
+			access: res.data.accessToken,
+			accessExpiresAt: res.data.accessTokenExpiresAt,
+			refresh: res.data.refreshToken,
+			refreshExpiresAt: res.data.refreshTokenExpiresAt,
+		});
         return Promise.resolve();
       } else {
         throw new Error("Not matching data from the API.");
