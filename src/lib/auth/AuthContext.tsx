@@ -1,7 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { TokensData } from "../auth/types";
+import { TokensData, UserData } from "../auth/types";
 import { AuthProviderProps } from "./AuthProvider";
-import { User } from "../api-types";
 
 export interface AuthContextValue {
   /**
@@ -9,7 +8,7 @@ export interface AuthContextValue {
    *
    * If `undefined`; it means the auth state is still loading.
    */
-  currentUser: User | undefined | null;
+  currentUser: UserData | undefined | null;
 
   /**
    * Currently logged-in user token information or `null` if there isn't any.
@@ -20,7 +19,7 @@ export interface AuthContextValue {
   tokens: undefined | null | TokensData;
 
   setTokens: ((tokens: TokensData | null) => void) | null; // TODO: Documentar
-  setCurrentUser: ((user: User | undefined) => void) | null; // TODO: Documentar
+  setCurrentUser: ((user: UserData | undefined) => void) | null; // TODO: Documentar
 }
 
 const AuthContext = React.createContext<AuthContextValue>({
@@ -41,7 +40,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
   const { onAuthChange, children } = props;
 
   const [tokens, setTokens] = useState<undefined | null | TokensData>(null);
-  const [currentUser, setCurrentUser] = useState<User | undefined | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserData | undefined | null>(null);
 
 
   useEffect(() => {

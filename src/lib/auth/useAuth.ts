@@ -10,11 +10,11 @@ import { useAuthContext } from "./useAuthContext";
  */
 function useAuth(): Auth {
   const fetcher = useApiFetcher();
-  const { tokens, setTokens } = useAuthContext();
+  const { tokens, setTokens, currentUser, setCurrentUser } = useAuthContext();
 
   return {
     tokens,
-    currentUser: null,
+    currentUser,
     async login(credentials) {
       const { email, password } = credentials;
       const res = await fetcher("POST /v3/auth/login", {
