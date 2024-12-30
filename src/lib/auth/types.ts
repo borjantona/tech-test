@@ -52,6 +52,15 @@ interface Auth {
    * @throws {Error} if there is no user logged in
    */
   logout(): Promise<void>
+
+  /**
+   * Refresh the token.
+   *
+   * When the promise resolves; it will cause an update on {@link Auth.tokens};
+   *  
+   * @throws {Error} if refresh token is expired
+   */
+  refresh(): Promise<void>
 }
 
 interface AuthInitializeConfig {

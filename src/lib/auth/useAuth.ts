@@ -65,7 +65,10 @@ function useAuth(): Auth {
 		if (setTokens) setTokens(null);
 		if (setCurrentUser) setCurrentUser(null);
 		return Promise.resolve();
-    }
+    },
+	async refresh() {
+		return Promise.resolve();
+	}
   };
 }
 
