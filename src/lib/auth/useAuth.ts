@@ -59,7 +59,9 @@ function useAuth(): Auth {
       }
     },
     logout() {
-      return Promise.reject(new Error("Not yet implemented"));
+		if (setTokens) setTokens(null);
+		if (setCurrentUser) setCurrentUser(null);
+		return Promise.resolve();
     },
   };
 }
