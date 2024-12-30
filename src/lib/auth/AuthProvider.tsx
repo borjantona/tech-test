@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { AuthInitializeConfig } from './types'
+import { AuthContextProvider } from './AuthContext'
 
 interface AuthProviderProps extends AuthInitializeConfig {
   children?: ReactNode
@@ -22,10 +23,10 @@ interface AuthProviderProps extends AuthInitializeConfig {
  * a single source of truth.
  */
 function AuthProvider(props: AuthProviderProps): JSX.Element {
-  const { initialTokens, onAuthChange, children } = props
+  // const { initialTokens, onAuthChange, children } = props
 
   return (
-    <>{children}</>
+    <AuthContextProvider {...props}>{props.children}</AuthContextProvider>
   )
 }
 
