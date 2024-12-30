@@ -59,10 +59,13 @@ function useAuth(): Auth {
       }
     },
     logout() {
+		if (tokens === null) {
+			throw new Error("Not user to logout.");
+		}
 		if (setTokens) setTokens(null);
 		if (setCurrentUser) setCurrentUser(null);
 		return Promise.resolve();
-    },
+    }
   };
 }
 
