@@ -1,4 +1,17 @@
 import { downloadObjectInterface } from "../../views/Matches/MatchesDownloadForm";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import "dayjs/locale/es"; // Importa más idiomas si necesitas
+
+dayjs.extend(localizedFormat);
+
+// Configurar el locale del navegador
+const browserLocale = navigator.language || "en"; // Detecta el idioma del navegador
+dayjs.locale(browserLocale);
+
+export function getLocale (date: string, format: string ): string {
+	return dayjs(date).format(format);
+}
 
 export function downloadObjectToCsv(
   data: downloadObjectInterface[],
