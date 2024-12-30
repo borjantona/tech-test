@@ -16,6 +16,11 @@ import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import { useApiFetcher } from '@/lib/api'
 import { Match } from '@/lib/api-types'
+import { Box, Fab } from "@mui/material";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import Modal from "@mui/material/Modal";
+import { boxStyle } from "./styles.ts";
+import MatchesDownloadForm from "./MatchesDownloadForm.tsx";
 
 export interface MatchesProps {
   onLogoutRequest?: () => void
@@ -43,6 +48,17 @@ export function Matches(props: MatchesProps) {
   )
   const matches: Match[] = query.data.matches
   const total: number = query.data.total
+
+  const [open, setOpen] = useState(false);
+  const downloadMatchesLabel = "DOWNLOAD MATCHES";
+
+  const handleModalOpen = () => {
+    setOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setOpen(false);
+  };
 
   return (
     <Stack {...otherProps}>
@@ -103,6 +119,32 @@ export function Matches(props: MatchesProps) {
           setPage(0)
         }}
       />
+		<Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" justifyContent="space-between">
+          <Fab
+            variant="extended"
+            color="secondary"
+            aria-label={downloadMatchesLabel}
+            onClick={handleModalOpen}
+          >
+            <CloudDownloadIcon sx={{ mr: 1 }} />
+            {downloadMatchesLabel}
+          </Fab>
+        </Stack>
+      </Stack>
+      <Modal
+        open={open}
+        onClose={handleModalClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={boxStyle} borderRadius={2}>
+          <Typography marginBottom={2} id="modal-modal-title" variant="h6" component="h2" color="#000">
+            {downloadMatchesLabel}
+          </Typography>
+          <MatchesDownloadForm />
+        </Box>
+      </Modal>
     </Stack>
   )
 }
