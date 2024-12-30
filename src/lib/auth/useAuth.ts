@@ -12,6 +12,23 @@ function useAuth(): Auth {
   const fetcher = useApiFetcher();
   const { tokens, setTokens, currentUser, setCurrentUser } = useAuthContext();
 
+  const fetchUser = async (token: string) => {
+    const res = await fetcher(
+      "GET /v1/users/me",
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!res.ok) {
+      console.log("error while fetching user", res);
+      return;
+    }
+    if (setCurrentUser) setCurrentUser({
+		userId: res.data.userId,
+		name: res.data.displayName,
+		email: res.data.email ?? ""
+	});
+  };
+
   return {
     tokens,
     currentUser,
@@ -35,6 +52,7 @@ function useAuth(): Auth {
 			refresh: res.data.refreshToken,
 			refreshExpiresAt: res.data.refreshTokenExpiresAt,
 		});
+		await fetchUser(res.data.accessToken);
         return Promise.resolve();
       } else {
         throw new Error("Not matching data from the API.");
