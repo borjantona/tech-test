@@ -36,6 +36,7 @@ export interface downloadObjectInterface {
 }
 
 export default function MatchesDownloadForm() {
+	/* Hooks */
   const [formData, setFormData] = useState({
     sports: {
       tennis: true,
@@ -49,7 +50,6 @@ export default function MatchesDownloadForm() {
   const fetcher = useApiFetcher();
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
-
   useEffect(() => {
     getAllData()
       .then((data) => {
@@ -91,12 +91,15 @@ export default function MatchesDownloadForm() {
     }));
   };
 
+
+  /* Util functions */
   const getAllData = async (): Promise<{ matches: Match[]; users: User[] }> => {
     const matches = [] as Match[];
     let users = [] as User[];
     let page = 0;
     const size = 10;
     let results = -1;
+
     while (results === -1 || results === size) {
       const res = await fetcher("GET /v1/matches", { page, size });
       if (!res.ok) {
@@ -107,15 +110,16 @@ export default function MatchesDownloadForm() {
       }
       page++;
     }
+
     users = matches
       .flatMap((match) => match.teams.flatMap((team) => team.players))
       .filter(
         (user, index, self) =>
           index === self.findIndex((u) => u.userId === user.userId)
       );
+
     return { matches, users };
   };
-
   const onDownloadMatches = (event: FormEvent) => {
     event.preventDefault();
 

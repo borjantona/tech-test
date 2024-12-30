@@ -18,8 +18,11 @@ export interface AuthContextValue {
    */
   tokens: undefined | null | TokensData;
 
-  setTokens: ((tokens: TokensData | null) => void) | null; // TODO: Documentar
-  setCurrentUser: ((user: UserData | undefined | null) => void) | null; // TODO: Documentar
+  /**
+   * Setters for the tokens and the currentUser data
+   */
+  setTokens: ((tokens: TokensData | null) => void) | null; 
+  setCurrentUser: ((user: UserData | undefined | null) => void) | null;
 }
 
 const AuthContext = React.createContext<AuthContextValue>({
