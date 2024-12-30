@@ -153,8 +153,6 @@ export default function MatchesDownloadForm() {
         const startTime = getLocale(match.startDate, "LT");
         const endTime = getLocale(match.endDate, "LT");
 
-		console.log(day, startTime, endTime);
-
         const players = match.teams
           .map((team, index) => {
             const teamPlayers = team.players.map(
