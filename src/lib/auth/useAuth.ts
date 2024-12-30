@@ -67,7 +67,24 @@ function useAuth(): Auth {
 		return Promise.resolve();
     },
 	async refresh() {
-		return Promise.resolve();
+		if (tokens?.refresh) {
+			const res = await fetcher("POST /v3/auth/refresh", {
+				data: { refreshToken: tokens.refresh }
+			});
+			if (!res.ok) {
+				throw new Error(res.data.message);
+			} else {
+				if (setTokens) setTokens({
+					access: res.data.accessToken,
+					accessExpiresAt: res.data.accessTokenExpiresAt,
+					refresh: res.data.refreshToken,
+					refreshExpiresAt: res.data.refreshTokenExpiresAt,
+				});
+			}
+			return Promise.resolve();
+		} else {
+			throw new Error("Not user to refresh.");
+		}
 	}
   };
 }
