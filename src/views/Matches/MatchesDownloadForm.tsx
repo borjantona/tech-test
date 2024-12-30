@@ -6,14 +6,27 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { FormEvent, useState } from "react";
-import { User } from "@/lib/api-types";
+import { FormEvent, useEffect, useState } from "react";
+import { Match, User } from "@/lib/api-types";
 import "./MatchesDownloadForm.css";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import isBetween from "dayjs/plugin/isBetween";
+import { downloadCsv, downloadObjectToCsv, getLocale } from "@/lib/utils/utils";
+import { useApiFetcher } from "@/lib/api";
 
+const DATE_OPTIONS = {
+  AllTime: "All time",
+  Last3Months: "Last 3 months",
+  CustomDate: "Custom date",
+};
+export type Sport = "tennis" | "padel";
+
+const today = dayjs();
+const yesterday = dayjs().subtract(1, "day");
 export interface downloadObjectInterface {
   Sport: string;
   Day: string;
@@ -22,43 +35,36 @@ export interface downloadObjectInterface {
   Players: string;
 }
 
-const DATE_OPTIONS = ["All time", "Last 3 months", "Custom date"];
-const MOCK_USERS: User[] = [
-  {
-    displayName: "User 1",
-    email: "user1@playtomic.io",
-    pictureURL: "",
-    userId: "1",
-  },
-  {
-    displayName: "User 2",
-    email: "user2@playtomic.io",
-    pictureURL: "",
-    userId: "2",
-  },
-  {
-    displayName: "User 3",
-    email: "user1@playtomic.io",
-    pictureURL: "",
-    userId: "3",
-  },
-];
-export type Sport = "tennis" | "padel";
-const today = dayjs();
-const yesterday = dayjs().subtract(1, "day");
-
 export default function MatchesDownloadForm() {
   const [formData, setFormData] = useState({
     sports: {
       tennis: true,
       padel: true,
     },
-    date: DATE_OPTIONS[0],
+    date: DATE_OPTIONS.AllTime,
     user: "0",
     startDate: null as Dayjs | null,
     endDate: null as Dayjs | null,
   });
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const fetcher = useApiFetcher();
+  const [users, setUsers] = useState<User[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  useEffect(() => {
+    getAllData()
+      .then((data) => {
+        setMatches(data.matches);
+        setUsers(data.users);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
+
+  /* Handlers for changing the state of the filters */
+  const handleSelectChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = event.target;
 
     setFormData((prevData) => ({
@@ -85,14 +91,93 @@ export default function MatchesDownloadForm() {
     }));
   };
 
-  const handleSubmit = (event: FormEvent) => {
+  const getAllData = async (): Promise<{ matches: Match[]; users: User[] }> => {
+    const matches = [] as Match[];
+    let users = [] as User[];
+    let page = 0;
+    const size = 10;
+    let results = -1;
+    while (results === -1 || results === size) {
+      const res = await fetcher("GET /v1/matches", { page, size });
+      if (!res.ok) {
+        throw new Error(res.data.message);
+      } else {
+        matches.push(...res.data);
+        results = res.data.length;
+      }
+      page++;
+    }
+    users = matches
+      .flatMap((match) => match.teams.flatMap((team) => team.players))
+      .filter(
+        (user, index, self) =>
+          index === self.findIndex((u) => u.userId === user.userId)
+      );
+    return { matches, users };
+  };
+
+  const onDownloadMatches = (event: FormEvent) => {
     event.preventDefault();
-    console.log("Form submitted with values:", formData);
+
+    /*Filter the data*/
+    const filteredMatches = matches.filter((match) => {
+      const isTennis =
+        formData.sports.tennis && match.sport.toLowerCase() === "tennis";
+      const isPadel =
+        formData.sports.padel && match.sport.toLowerCase() === "padel";
+      const isDate =
+        formData.date === DATE_OPTIONS.AllTime ||
+        (formData.date === DATE_OPTIONS.Last3Months &&
+          today.diff(match.startDate, "month") <= 3) ||
+        (formData.date === DATE_OPTIONS.CustomDate &&
+          formData.startDate &&
+          formData.endDate &&
+          dayjs(match.startDate).isBetween(
+            formData.startDate,
+            formData.endDate,
+            "day",
+            "[]"
+          ));
+      const isUser =
+        formData.user === "0" ||
+        match.teams.some((team) =>
+          team.players.some((player) => player.userId === formData.user)
+        );
+      return (isTennis || isPadel) && isDate && isUser;
+    });
+
+    /*Format the data to download*/
+    const objectToDownload: downloadObjectInterface[] = filteredMatches.map(
+      (match) => {
+        const day = getLocale(match.startDate, "L");
+        const startTime = getLocale(match.startDate, "LT");
+        const endTime = getLocale(match.endDate, "LT");
+
+		console.log(day, startTime, endTime);
+
+        const players = match.teams
+          .map((team, index) => {
+            const teamPlayers = team.players.map(
+              (player) => player.displayName
+            );
+            return `Team ${index + 1}: ${teamPlayers.join(" and ")}`;
+          })
+          .join(", ");
+        return {
+          Sport: match.sport,
+          Day: day,
+          "Start hour": startTime,
+          "End hour": endTime,
+          Players: players,
+        };
+      }
+    );
+    downloadCsv(downloadObjectToCsv(objectToDownload), "matches.csv");
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form" onSubmit={onDownloadMatches}>
         <Stack direction="row" spacing={1}>
           <FormControlLabel
             control={
@@ -125,18 +210,18 @@ export default function MatchesDownloadForm() {
           name="date"
           value={formData.date}
           className="select"
-          defaultValue={DATE_OPTIONS[0]}
-          onChange={handleChange}
+          defaultValue={DATE_OPTIONS.AllTime}
+          onChange={handleSelectChange}
         >
-          {DATE_OPTIONS.map((option) => {
+          {Object.entries(DATE_OPTIONS).map(([, value]) => {
             return (
-              <MenuItem key={option} value={option}>
-                {option}
+              <MenuItem key={value} value={value}>
+                {value}
               </MenuItem>
             );
           })}
         </TextField>
-        {formData.date === "Custom date" && (
+        {formData.date === DATE_OPTIONS.CustomDate && (
           <Stack direction="row" spacing={2}>
             <DatePicker
               label="Start Date"
@@ -166,11 +251,11 @@ export default function MatchesDownloadForm() {
           name="user"
           className="select"
           value={formData.user}
-          onChange={handleChange}
+          onChange={handleSelectChange}
           defaultValue={"0"}
         >
           <MenuItem value="0">All users</MenuItem>
-          {MOCK_USERS.map((user) => {
+          {users.map((user) => {
             return (
               <MenuItem key={user.userId} value={user.userId}>
                 {user.displayName}
