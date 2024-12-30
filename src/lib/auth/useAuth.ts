@@ -19,14 +19,14 @@ function useAuth(): Auth {
       { headers: { Authorization: `Bearer ${token}` } }
     );
     if (!res.ok) {
-      console.log("error while fetching user", res);
-      return;
+      throw new Error(res.data.message);
     }
-    if (setCurrentUser) setCurrentUser({
-		userId: res.data.userId,
-		name: res.data.displayName,
-		email: res.data.email ?? ""
-	});
+    if (setCurrentUser)
+      setCurrentUser({
+        userId: res.data.userId,
+        name: res.data.displayName,
+        email: res.data.email ?? "",
+      });
   };
 
   return {
@@ -46,23 +46,27 @@ function useAuth(): Auth {
         typeof res.data.refreshToken === "string" &&
         typeof res.data.refreshTokenExpiresAt === "string"
       ) {
-		if (setTokens) setTokens({
-			access: res.data.accessToken,
-			accessExpiresAt: res.data.accessTokenExpiresAt,
-			refresh: res.data.refreshToken,
-			refreshExpiresAt: res.data.refreshTokenExpiresAt,
-		});
-		await fetchUser(res.data.accessToken);
+        if (setTokens)
+          setTokens({
+            access: res.data.accessToken,
+            accessExpiresAt: res.data.accessTokenExpiresAt,
+            refresh: res.data.refreshToken,
+            refreshExpiresAt: res.data.refreshTokenExpiresAt,
+          });
+        await fetchUser(res.data.accessToken);
         return Promise.resolve();
       } else {
         throw new Error("Not matching data from the API.");
       }
     },
     logout() {
-		if (setTokens) setTokens(null);
-		if (setCurrentUser) setCurrentUser(null);
-		return Promise.resolve();
-    },
+      if (tokens === null) {
+        throw new Error("Not user to logout.");
+      }
+      if (setTokens) setTokens(null);
+      if (setCurrentUser) setCurrentUser(null);
+      return Promise.resolve();
+    }
   };
 }
 
