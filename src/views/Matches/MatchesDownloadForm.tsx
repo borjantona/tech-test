@@ -18,10 +18,10 @@ import isBetween from "dayjs/plugin/isBetween";
 import { downloadCsv, downloadObjectToCsv, getLocale } from "@/lib/utils/utils";
 import { useApiFetcher } from "@/lib/api";
 
-const DATE_OPTIONS = {
-  AllTime: "All time",
-  Last3Months: "Last 3 months",
-  CustomDate: "Custom date",
+enum DATE_OPTIONS {
+  AllTime = "All time",
+  Last3Months = "Last 3 months",
+  CustomDate = "Custom date"
 };
 export type Sport = "tennis" | "padel";
 
