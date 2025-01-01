@@ -17,8 +17,8 @@ export function downloadObjectToCsv(
   data: downloadObjectInterface[],
   delimiter = ","
 ): string {
-  if (!Array.isArray(data) || data.length === 0) {
-    throw new Error("El JSON debe ser un arreglo no vacío.");
+  if (!Array.isArray(data)) {
+    throw new Error("Data malformed");
   }
 
   // Obtain headers from the first object
