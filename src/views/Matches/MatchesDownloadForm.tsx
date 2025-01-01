@@ -217,6 +217,7 @@ export default function MatchesDownloadForm() {
           label="Date"
           name="date"
           value={formData.date}
+          sx={{ margin: "1rem 0" }}
           className="select"
           defaultValue={DATE_OPTIONS.AllTime}
           onChange={handleSelectChange}
@@ -258,6 +259,7 @@ export default function MatchesDownloadForm() {
           label="Users"
           name="user"
           className="select"
+          sx={{ margin: "2rem 0" }}
           value={formData.user}
           onChange={handleSelectChange}
           defaultValue={"0"}
