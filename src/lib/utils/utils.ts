@@ -13,12 +13,17 @@ export function getLocale (date: string, format: string ): string {
 	return dayjs(date).format(format);
 }
 
+/**
+ * Returns a CSV string from an array of objects
+ *
+ * @throws {Error} if data malformed or empty
+ */
 export function downloadObjectToCsv(
   data: downloadObjectInterface[],
   delimiter = ","
 ): string {
-  if (!Array.isArray(data)) {
-    throw new Error("Data malformed");
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Data malformed or empty");
   }
 
   // Obtain headers from the first object

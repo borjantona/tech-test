@@ -2,3 +2,9 @@
   width: 100%;
   margin: 1rem 0;
 }
+
+.error {
+	color: red;
+	display: flex;
+	margin-bottom: 1rem;
+}

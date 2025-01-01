@@ -21,8 +21,8 @@ import { useApiFetcher } from "@/lib/api";
 enum DATE_OPTIONS {
   AllTime = "All time",
   Last3Months = "Last 3 months",
-  CustomDate = "Custom date"
-};
+  CustomDate = "Custom date",
+}
 export type Sport = "tennis" | "padel";
 
 const today = dayjs();
@@ -36,7 +36,7 @@ export interface downloadObjectInterface {
 }
 
 export default function MatchesDownloadForm() {
-	/* Hooks */
+  /* Hooks */
   const [formData, setFormData] = useState({
     sports: {
       tennis: true,
@@ -50,6 +50,7 @@ export default function MatchesDownloadForm() {
   const fetcher = useApiFetcher();
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [error, setError] = useState("");
   useEffect(() => {
     getAllData()
       .then((data) => {
@@ -62,9 +63,7 @@ export default function MatchesDownloadForm() {
   }, []);
 
   /* Handlers for changing the state of the filters */
-  const handleSelectChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
     setFormData((prevData) => ({
@@ -90,7 +89,6 @@ export default function MatchesDownloadForm() {
       [key]: newValue,
     }));
   };
-
 
   /* Util functions */
   const getAllData = async (): Promise<{ matches: Match[]; users: User[] }> => {
@@ -174,7 +172,15 @@ export default function MatchesDownloadForm() {
         };
       }
     );
-    downloadCsv(downloadObjectToCsv(objectToDownload), "matches.csv");
+    try {
+      downloadCsv(downloadObjectToCsv(objectToDownload), "matches.csv");
+      setError("");
+    } catch (error) {
+      setError(
+        "Error downloading the file. Filters need to be adjusted to include users."
+      );
+      console.error(error);
+    }
   };
 
   return (
@@ -265,6 +271,9 @@ export default function MatchesDownloadForm() {
             );
           })}
         </TextField>
+
+        <div className="error">{error}</div>
+
         <Button
           type="submit"
           variant="contained"
