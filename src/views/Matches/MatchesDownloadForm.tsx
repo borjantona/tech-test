@@ -13,7 +13,6 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import isBetween from "dayjs/plugin/isBetween";
 import { downloadCsv, downloadObjectToCsv, getLocale } from "@/lib/utils/utils";
 import { useApiFetcher } from "@/lib/api";
@@ -27,6 +26,7 @@ export type Sport = "tennis" | "padel";
 
 const today = dayjs();
 const yesterday = dayjs().subtract(1, "day");
+dayjs.extend(isBetween);
 export interface downloadObjectInterface {
   Sport: string;
   Day: string;
