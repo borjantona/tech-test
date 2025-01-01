@@ -1,6 +1,7 @@
 import { Auth } from "./types";
 import { useApiFetcher } from "../api";
 import { useAuthContext } from "./useAuthContext";
+import { useEffect } from "react";
 
 /**
  * Returns the current auth state. See {@link Auth} for more information on
@@ -11,6 +12,14 @@ import { useAuthContext } from "./useAuthContext";
 function useAuth(): Auth {
   const fetcher = useApiFetcher();
   const { tokens, setTokens, currentUser, setCurrentUser } = useAuthContext();
+
+  useEffect(() => {
+    if (tokens !== null && tokens) {
+      fetchUser(tokens.access).catch((err: Error) => {
+        console.error(err);
+      });
+    }
+  }, [tokens]);
 
   const fetchUser = async (token: string) => {
     const res = await fetcher(
@@ -53,7 +62,6 @@ function useAuth(): Auth {
             refresh: res.data.refreshToken,
             refreshExpiresAt: res.data.refreshTokenExpiresAt,
           });
-        await fetchUser(res.data.accessToken);
         return Promise.resolve();
       } else {
         throw new Error("Not matching data from the API.");
@@ -66,7 +74,7 @@ function useAuth(): Auth {
       if (setTokens) setTokens(null);
       if (setCurrentUser) setCurrentUser(null);
       return Promise.resolve();
-    }
+    },
   };
 }
 

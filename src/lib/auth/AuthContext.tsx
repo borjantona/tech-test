@@ -21,15 +21,15 @@ export interface AuthContextValue {
   /**
    * Setters for the tokens and the currentUser data
    */
-  setTokens: ((tokens: TokensData | null) => void) | null; 
+  setTokens: ((tokens: TokensData | null) => void) | null;
   setCurrentUser: ((user: UserData | undefined | null) => void) | null;
 }
 
 const AuthContext = React.createContext<AuthContextValue>({
-  currentUser: null,
+  currentUser: undefined,
   tokens: null,
-  setTokens: null, 
-  setCurrentUser: null, 
+  setTokens: null,
+  setCurrentUser: null,
 });
 
 interface AuthContextProviderProps extends Partial<AuthProviderProps> {
@@ -40,31 +40,44 @@ interface AuthContextProviderProps extends Partial<AuthProviderProps> {
  * Allows configuring the default behavior of the API fetcher.
  */
 function AuthContextProvider(props: AuthContextProviderProps) {
-  const { onAuthChange, children } = props;
+  const { initialTokens, onAuthChange, children } = props;
 
-  const [tokens, setTokens] = useState<undefined | null | TokensData>(null);
-  const [currentUser, setCurrentUser] = useState<UserData | undefined | null>(null);
-
+  const [tokens, setTokens] = useState<null | TokensData | undefined>(undefined);
+  const [currentUser, setCurrentUser] = useState<UserData | undefined | null>(
+    undefined
+  );
 
   useEffect(() => {
-    if (tokens) {
-      if (typeof onAuthChange === 'function') {
-        onAuthChange(tokens);
-      }
+    if (initialTokens !== undefined) {
+      (initialTokens as Promise<TokensData | null>)
+        .then((res) => {
+			if (res !== null) {
+				setTokens(res)
+			} else {
+				setCurrentUser(null);
+			}
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
-  }, [tokens]); 
-  
+  }, []);
+
+  useEffect(() => {
+	if (tokens !== undefined) {
+		if (typeof onAuthChange === "function") {
+			onAuthChange(tokens);
+		}
+	}
+  }, [tokens, onAuthChange]);
 
   const value = {
-      currentUser,
-      tokens,
-      setTokens,
-      setCurrentUser,
-    }
-  return <AuthContext.Provider value={value}>
-		{children}
-	</AuthContext.Provider>;
+    currentUser,
+    tokens,
+    setTokens,
+    setCurrentUser,
+  };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
 
 export { AuthContext, AuthContextProvider };
