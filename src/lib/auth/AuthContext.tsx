@@ -61,7 +61,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
           console.log(error);
         });
     }
-  }, []);
+  }, [initialTokens]);
 
   useEffect(() => {
 	if (tokens !== undefined) {

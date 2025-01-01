@@ -52,6 +52,36 @@ export default function MatchesDownloadForm() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [error, setError] = useState("");
   useEffect(() => {
+    const getAllData = async (): Promise<{
+      matches: Match[];
+      users: User[];
+    }> => {
+      const matches = [] as Match[];
+      let users = [] as User[];
+      let page = 0;
+      const size = 10;
+      let results = -1;
+
+      while (results === -1 || results === size) {
+        const res = await fetcher("GET /v1/matches", { page, size });
+        if (!res.ok) {
+          throw new Error(res.data.message);
+        } else {
+          matches.push(...res.data);
+          results = res.data.length;
+        }
+        page++;
+      }
+
+      users = matches
+        .flatMap((match) => match.teams.flatMap((team) => team.players))
+        .filter(
+          (user, index, self) =>
+            index === self.findIndex((u) => u.userId === user.userId)
+        );
+
+      return { matches, users };
+    };
     getAllData()
       .then((data) => {
         setMatches(data.matches);
@@ -60,7 +90,7 @@ export default function MatchesDownloadForm() {
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  }, [fetcher]);
 
   /* Handlers for changing the state of the filters */
   const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,33 +121,7 @@ export default function MatchesDownloadForm() {
   };
 
   /* Util functions */
-  const getAllData = async (): Promise<{ matches: Match[]; users: User[] }> => {
-    const matches = [] as Match[];
-    let users = [] as User[];
-    let page = 0;
-    const size = 10;
-    let results = -1;
 
-    while (results === -1 || results === size) {
-      const res = await fetcher("GET /v1/matches", { page, size });
-      if (!res.ok) {
-        throw new Error(res.data.message);
-      } else {
-        matches.push(...res.data);
-        results = res.data.length;
-      }
-      page++;
-    }
-
-    users = matches
-      .flatMap((match) => match.teams.flatMap((team) => team.players))
-      .filter(
-        (user, index, self) =>
-          index === self.findIndex((u) => u.userId === user.userId)
-      );
-
-    return { matches, users };
-  };
   const onDownloadMatches = (event: FormEvent) => {
     event.preventDefault();
 

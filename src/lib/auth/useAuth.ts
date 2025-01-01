@@ -15,28 +15,27 @@ function useAuth(): Auth {
 
   useEffect(() => {
     if (tokens !== null && tokens) {
+      const fetchUser = async (token: string) => {
+        const res = await fetcher(
+          "GET /v1/users/me",
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) {
+          throw new Error(res.data.message);
+        }
+        if (setCurrentUser)
+          setCurrentUser({
+            userId: res.data.userId,
+            name: res.data.displayName,
+            email: res.data.email ?? "",
+          });
+      };
       fetchUser(tokens.access).catch((err: Error) => {
         console.error(err);
       });
     }
-  }, [tokens]);
-
-  const fetchUser = async (token: string) => {
-    const res = await fetcher(
-      "GET /v1/users/me",
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    if (!res.ok) {
-      throw new Error(res.data.message);
-    }
-    if (setCurrentUser)
-      setCurrentUser({
-        userId: res.data.userId,
-        name: res.data.displayName,
-        email: res.data.email ?? "",
-      });
-  };
+  }, [tokens, fetcher, setCurrentUser]);
 
   return {
     tokens,
