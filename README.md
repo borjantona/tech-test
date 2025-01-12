@@ -1,5 +1,7 @@
 # Technical Task - Frontend
 
+I've documented all the process at Notion. Let me share it with you just in case you find it useful ->  [Technical Task Docs](https://hollow-sort-d94.notion.site/Prueba-t-cnica-Playtomic-16af06d525f8804f95b6c252ebcb60f9)
+
 ## Getting started
 
 [Create a new repository](https://github.com/new?template_name=technical-test-frontend&template_owner=syltek&visibility=private) using this one as a template. Make sure set the repository visibility to **🔒 Private**.
@@ -31,9 +33,9 @@ Thats it! You are now ready to start with the [tasks](#tasks) or spend some time
 
 The test is divided in three mandatory tasks and one optional. The whole test is designed to be resolved in around three hours (not including the optional tasks).
 
-- [ ] **1.** Technical work: filling the gaps in the auth flow. [Link](./docs/task-01.md)
-- [ ] **2.** Product feature request: download all matches. [Link](./docs/task-02.md)
-- [ ] **3.** Pull Request review: showing correct dates. [Link](./docs/task-03.md)
+- [x] **1.** Technical work: filling the gaps in the auth flow. [Link](./docs/task-01.md)
+- [x] **2.** Product feature request: download all matches. [Link](./docs/task-02.md)
+- [x] **3.** Pull Request review: showing correct dates. [Link](./docs/task-03.md)
 - [ ] **4.** _(optional)_ Technical work: auth refresh flow. [Link](./docs/task-04.md)
 
 ### Dos and don'ts
