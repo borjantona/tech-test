@@ -1,6 +1,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { TokensData, UserData } from "../auth/types";
 import { AuthProviderProps } from "./AuthProvider";
+import { useApiFetcher } from "../api";
 
 export interface AuthContextValue {
   /**
@@ -21,16 +22,11 @@ export interface AuthContextValue {
   /**
    * Setters for the tokens and the currentUser data
    */
-  setTokens: ((tokens: TokensData | null) => void) | null;
-  setCurrentUser: ((user: UserData | undefined | null) => void) | null;
+  setTokens: ((tokens: TokensData | null) => void);
+  setCurrentUser: ((user: UserData | undefined | null) => void);
 }
 
-const AuthContext = React.createContext<AuthContextValue>({
-  currentUser: undefined,
-  tokens: null,
-  setTokens: null,
-  setCurrentUser: null,
-});
+const AuthContext = React.createContext<AuthContextValue | null>(null);
 
 interface AuthContextProviderProps extends Partial<AuthProviderProps> {
   children?: ReactNode;
@@ -42,20 +38,24 @@ interface AuthContextProviderProps extends Partial<AuthProviderProps> {
 function AuthContextProvider(props: AuthContextProviderProps) {
   const { initialTokens, onAuthChange, children } = props;
 
-  const [tokens, setTokens] = useState<null | TokensData | undefined>(undefined);
+  const [tokens, setTokens] = useState<null | TokensData | undefined>(
+    undefined
+  );
   const [currentUser, setCurrentUser] = useState<UserData | undefined | null>(
     undefined
   );
 
+  const fetcher = useApiFetcher();
+
   useEffect(() => {
-    if (initialTokens !== undefined) {
-      (initialTokens as Promise<TokensData | null>)
+    if (initialTokens instanceof Promise) {
+      (initialTokens)
         .then((res) => {
-			if (res !== null) {
-				setTokens(res)
-			} else {
-				setCurrentUser(null);
-			}
+          if (res !== null) {
+            setTokens(res);
+          } else {
+            setCurrentUser(null);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -64,11 +64,50 @@ function AuthContextProvider(props: AuthContextProviderProps) {
   }, [initialTokens]);
 
   useEffect(() => {
-	if (tokens !== undefined) {
-		if (typeof onAuthChange === "function") {
-			onAuthChange(tokens);
-		}
-	}
+    if (tokens !== null && tokens) {
+      const fetchUser = async (token: string) => {
+        const res = await fetcher(
+          "GET /v1/users/me",
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) {
+          if (res.status === 403) {
+            const resRefresh = await fetcher(
+              "POST /v3/auth/refresh",
+              { data: { refreshToken: tokens.refresh } },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (!resRefresh.ok) {
+              throw new Error("No refresh token available");
+            }
+            setTokens({
+              access: resRefresh.data.accessToken,
+              accessExpiresAt: resRefresh.data.accessTokenExpiresAt,
+              refresh: resRefresh.data.refreshToken,
+              refreshExpiresAt: resRefresh.data.refreshTokenExpiresAt,
+            });
+          }
+          throw new Error(res.data.message);
+        }
+        setCurrentUser({
+          userId: res.data.userId,
+          name: res.data.displayName,
+          email: res.data.email ?? "",
+        });
+      };
+      fetchUser(tokens.access).catch((err: Error) => {
+        console.error(err);
+      });
+    }
+  }, [tokens, fetcher, setCurrentUser]);
+
+  useEffect(() => {
+    if (tokens !== undefined) {
+      if (typeof onAuthChange === "function") {
+        onAuthChange(tokens);
+      }
+    }
   }, [tokens, onAuthChange]);
 
   const value = {

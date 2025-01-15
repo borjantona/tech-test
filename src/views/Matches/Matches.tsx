@@ -19,8 +19,8 @@ import { Match } from '@/lib/api-types'
 import { Box, Fab } from "@mui/material";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import Modal from "@mui/material/Modal";
-import { boxStyle } from "./styles.ts";
-import MatchesDownloadForm from "./MatchesDownloadForm.tsx";
+import { boxStyle } from "../../components/styles.ts";
+import MatchesDownloadForm from "../../components/MatchesDownloadForm.tsx";
 
 export interface MatchesProps {
   onLogoutRequest?: () => void

@@ -1,7 +1,6 @@
 import { Auth } from "./types";
 import { useApiFetcher } from "../api";
 import { useAuthContext } from "./useAuthContext";
-import { useEffect } from "react";
 
 /**
  * Returns the current auth state. See {@link Auth} for more information on
@@ -11,31 +10,12 @@ import { useEffect } from "react";
  */
 function useAuth(): Auth {
   const fetcher = useApiFetcher();
-  const { tokens, setTokens, currentUser, setCurrentUser } = useAuthContext();
+  const context = useAuthContext();
 
-  useEffect(() => {
-    if (tokens !== null && tokens) {
-      const fetchUser = async (token: string) => {
-        const res = await fetcher(
-          "GET /v1/users/me",
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (!res.ok) {
-          throw new Error(res.data.message);
-        }
-        if (setCurrentUser)
-          setCurrentUser({
-            userId: res.data.userId,
-            name: res.data.displayName,
-            email: res.data.email ?? "",
-          });
-      };
-      fetchUser(tokens.access).catch((err: Error) => {
-        console.error(err);
-      });
-    }
-  }, [tokens, fetcher, setCurrentUser]);
+  if (!context) {
+    throw new TypeError("useAuth must be used within an AuthProvider");
+  }
+  const { tokens, setTokens, currentUser, setCurrentUser } = context;
 
   return {
     tokens,
@@ -48,30 +28,20 @@ function useAuth(): Auth {
       if (!res.ok) {
         throw new Error(res.data.message);
       }
-      if (
-        typeof res.data.accessToken === "string" &&
-        typeof res.data.accessTokenExpiresAt === "string" &&
-        typeof res.data.refreshToken === "string" &&
-        typeof res.data.refreshTokenExpiresAt === "string"
-      ) {
-        if (setTokens)
-          setTokens({
-            access: res.data.accessToken,
-            accessExpiresAt: res.data.accessTokenExpiresAt,
-            refresh: res.data.refreshToken,
-            refreshExpiresAt: res.data.refreshTokenExpiresAt,
-          });
-        return Promise.resolve();
-      } else {
-        throw new Error("Not matching data from the API.");
-      }
+        setTokens({
+          access: res.data.accessToken,
+          accessExpiresAt: res.data.accessTokenExpiresAt,
+          refresh: res.data.refreshToken,
+          refreshExpiresAt: res.data.refreshTokenExpiresAt,
+        });
+      return Promise.resolve();
     },
     logout() {
       if (tokens === null) {
         throw new Error("Not user to logout.");
       }
-      if (setTokens) setTokens(null);
-      if (setCurrentUser) setCurrentUser(null);
+      setTokens(null);
+      setCurrentUser(null);
       return Promise.resolve();
     },
   };
