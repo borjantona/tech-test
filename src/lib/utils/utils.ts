@@ -1,6 +1,6 @@
 import dayjs, { Dayjs } from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import "dayjs/locale/es"; // Importa más idiomas si necesitas
+import "dayjs/locale/es";
 import { Match } from "../api-types";
 
 dayjs.extend(localizedFormat);
@@ -28,15 +28,15 @@ export interface downloadObjectInterface {
 }
 
 export interface FormDataInterface {
-	sports: {
-		tennis: boolean,
-		padel: boolean
-	},
-	date: DATE_OPTIONS,
-	user: string,
-	startDate: Dayjs | null,
-	endDate: Dayjs | null
-} 
+  sports: {
+    tennis: boolean;
+    padel: boolean;
+  };
+  date: DATE_OPTIONS;
+  user: string;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
+}
 
 /**
  * Returns a CSV string from an array of objects
@@ -51,8 +51,17 @@ export function downloadObjectToCsv(
     throw new Error("Data malformed or empty");
   }
 
-  // Obtain headers from the first object
-  const headers = Object.keys(data[0]) as (keyof downloadObjectInterface)[];
+  function getTypedKeys<T extends object>(obj: T): (keyof T)[] {
+    const keys: (keyof T)[] = [];
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        keys.push(key);
+      }
+    }
+    return keys;
+  }
+
+  const headers = getTypedKeys(data[0]);
 
   // Create CSV rows
   const csvRows = data.map((row) =>
