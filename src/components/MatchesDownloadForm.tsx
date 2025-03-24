@@ -7,11 +7,6 @@ import {
   TextField,
 } from "@mui/material";
 import { FormEvent, useState } from "react";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { Dayjs } from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
 import {
   downloadCsv,
   downloadObjectToCsv,
@@ -25,12 +20,11 @@ import { DATE_OPTIONS } from "@/lib/utils/utils";
 
 export type Sport = "tennis" | "padel";
 
-const today = dayjs();
-const yesterday = dayjs().subtract(1, "day");
-dayjs.extend(isBetween);
+const today = new Date().toISOString().split("T")[0];
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
 
 export default function MatchesDownloadForm() {
-  /* Hooks */
   const [formData, setFormData] = useState<FormDataInterface>({
     sports: {
       tennis: true,
@@ -38,14 +32,13 @@ export default function MatchesDownloadForm() {
     },
     date: DATE_OPTIONS.AllTime,
     user: "0",
-    startDate: null,
-    endDate: null,
+    startDate: "",
+    endDate: "",
   });
 
   const [error, setError] = useState("");
   const { matches, users } = useMatchesUsers();
 
-  /* Handlers for changing the state of the filters */
   const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
@@ -54,6 +47,7 @@ export default function MatchesDownloadForm() {
       [name]: value,
     }));
   };
+
   const handleSportsChange = (sport: Sport) => {
     setFormData((prevData) => ({
       ...prevData,
@@ -63,24 +57,19 @@ export default function MatchesDownloadForm() {
       },
     }));
   };
-  const handleDateChange = (
-    key: "startDate" | "endDate",
-    newValue: Dayjs | null
-  ) => {
+
+  const handleDateChange = (key: "startDate" | "endDate", value: string) => {
     setFormData((prevData) => ({
       ...prevData,
-      [key]: newValue,
+      [key]: value,
     }));
   };
 
-  /* Util functions */
   const onDownloadMatches = (event: FormEvent) => {
     event.preventDefault();
 
-    /*Filter the data*/
-    const filteredMatches = filterMatches(matches, formData);
+	const filteredMatches = filterMatches(matches, formData);
 
-    /*Format the data to download*/
     const objectToDownload: downloadObjectInterface[] =
       formatObjectToDownload(filteredMatches);
 
@@ -89,112 +78,106 @@ export default function MatchesDownloadForm() {
       setError("");
     } catch (error) {
       setError(
-        "Error downloading the file. Filters need to be adjusted to include users."
+        "Error downloading the file. Filters need to be adjusted to include users in this period."
       );
       console.error(error);
     }
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <form className="form" onSubmit={onDownloadMatches}>
-        <Stack direction="row" spacing={1}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.sports.tennis}
-                onChange={() => {
-                  handleSportsChange("tennis");
-                }}
-              />
-            }
-            label="Tennis"
+    <form className="form" onSubmit={onDownloadMatches}>
+      <Stack direction="row" spacing={1}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.sports.tennis}
+              onChange={() => {
+                handleSportsChange("tennis");
+              }}
+            />
+          }
+          label="Tennis"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.sports.padel}
+              onChange={() => {
+                handleSportsChange("padel");
+              }}
+            />
+          }
+          label="Padel"
+        />
+      </Stack>
+
+      <TextField
+        id="outlined-select-currency"
+        select
+        label="Date"
+        name="date"
+        value={formData.date}
+        sx={{ margin: "1rem 0", width: "100%" }}
+        defaultValue={DATE_OPTIONS.AllTime}
+        onChange={handleSelectChange}
+      >
+        {Object.entries(DATE_OPTIONS).map(([, value]) => (
+          <MenuItem key={value} value={value}>
+            {value}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {formData.date === DATE_OPTIONS.CustomDate && (
+        <Stack direction="row" spacing={2}>
+          <TextField
+            label="Start Date"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={formData.startDate}
+            inputProps={{ max: today }}
+            onChange={(e) => {handleDateChange("startDate", e.target.value)}}
           />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={formData.sports.padel}
-                onChange={() => {
-                  handleSportsChange("padel");
-                }}
-              />
-            }
-            label="Padel"
+          <TextField
+            label="End Date"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            value={formData.endDate}
+            inputProps={{ max: today }}
+            onChange={(e) => {handleDateChange("endDate", e.target.value)}}
           />
         </Stack>
+      )}
 
-        <TextField
-          id="outlined-select-currency"
-          select
-          label="Date"
-          name="date"
-          value={formData.date}
-          sx={{ margin: "1rem 0", width: "100%" }}
-          defaultValue={DATE_OPTIONS.AllTime}
-          onChange={handleSelectChange}
-        >
-          {Object.entries(DATE_OPTIONS).map(([, value]) => {
-            return (
-              <MenuItem key={value} value={value}>
-                {value}
-              </MenuItem>
-            );
-          })}
-        </TextField>
-        {formData.date === DATE_OPTIONS.CustomDate && (
-          <Stack direction="row" spacing={2}>
-            <DatePicker
-              label="Start Date"
-              value={formData.startDate}
-              maxDate={today}
-              defaultValue={yesterday}
-              onChange={(newDate) => {
-                handleDateChange("startDate", newDate);
-              }}
-            />
-            <DatePicker
-              label="End Date"
-              value={formData.endDate}
-              maxDate={today}
-              defaultValue={today}
-              onChange={(newDate) => {
-                handleDateChange("endDate", newDate);
-              }}
-            />
-          </Stack>
-        )}
+      <TextField
+        id="outlined-select-currency"
+        select
+        label="Users"
+        name="user"
+        sx={{ margin: "2rem 0", width: "100%" }}
+        value={formData.user}
+        onChange={handleSelectChange}
+        defaultValue={"0"}
+      >
+        <MenuItem value="0">All users</MenuItem>
+        {users.map((user) => (
+          <MenuItem key={user.userId} value={user.userId}>
+            {user.displayName}
+          </MenuItem>
+        ))}
+      </TextField>
 
-        <TextField
-          id="outlined-select-currency"
-          select
-          label="Users"
-          name="user"
-          sx={{ margin: "2rem 0", width: "100%" }}
-          value={formData.user}
-          onChange={handleSelectChange}
-          defaultValue={"0"}
-        >
-          <MenuItem value="0">All users</MenuItem>
-          {users.map((user) => {
-            return (
-              <MenuItem key={user.userId} value={user.userId}>
-                {user.displayName}
-              </MenuItem>
-            );
-          })}
-        </TextField>
+      <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
 
-        <div style={{color: "red", marginBottom: "1rem"}}>{error}</div>
-
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          className="button"
-        >
-          Download
-        </Button>
-      </form>
-    </LocalizationProvider>
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary"
+        className="button"
+      >
+        Download
+      </Button>
+    </form>
   );
 }
+ 

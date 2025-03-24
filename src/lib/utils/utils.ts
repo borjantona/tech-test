@@ -1,16 +1,15 @@
-import dayjs, { Dayjs } from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import "dayjs/locale/es";
 import { Match } from "../api-types";
 
-dayjs.extend(localizedFormat);
-
-// Configurar el locale del navegador
-const browserLocale = navigator.language || "en"; // Detecta el idioma del navegador
-dayjs.locale(browserLocale);
-
 export function getLocale(date: string, format: string): string {
-  return dayjs(date).format(format);
+  const parsedDate = new Date(date);
+  if (isNaN(parsedDate.getTime())) return "Invalid Date";
+
+  const options: Intl.DateTimeFormatOptions =
+    format === "L"
+      ? { year: "numeric", month: "2-digit", day: "2-digit" }
+      : { hour: "2-digit", minute: "2-digit" };
+
+  return parsedDate.toLocaleString(navigator.language || "en", options);
 }
 
 export enum DATE_OPTIONS {
@@ -34,15 +33,10 @@ export interface FormDataInterface {
   };
   date: DATE_OPTIONS;
   user: string;
-  startDate: Dayjs | null;
-  endDate: Dayjs | null;
+  startDate: string;
+  endDate: string;
 }
 
-/**
- * Returns a CSV string from an array of objects
- *
- * @throws {Error} if data malformed or empty
- */
 export function downloadObjectToCsv(
   data: downloadObjectInterface[],
   delimiter = ","
@@ -52,48 +46,32 @@ export function downloadObjectToCsv(
   }
 
   function getTypedKeys<T extends object>(obj: T): (keyof T)[] {
-    const keys: (keyof T)[] = [];
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        keys.push(key);
-      }
-    }
-    return keys;
+    return Object.keys(obj) as (keyof T)[];
   }
 
   const headers = getTypedKeys(data[0]);
 
-  // Create CSV rows
   const csvRows = data.map((row) =>
     headers
       .map((header) => {
         const value = row[header];
-
         return `"${String(value).replace(/"/g, '""')}"`;
       })
       .join(delimiter)
   );
 
-  // Join headers and rows
   return [headers.join(delimiter), ...csvRows].join("\n");
 }
 
 export function downloadCsv(csvData: string, filename: string) {
-  // Create a blob with the CSV data
   const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-
-  // Create a temporary URL to download the CSV
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.setAttribute("href", url);
   link.setAttribute("download", filename);
-
-  // Add the link to the document and click it
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
-  // Release the URL
   URL.revokeObjectURL(url);
 }
 
@@ -101,36 +79,31 @@ export function filterMatches(
   matches: Match[],
   formData: FormDataInterface
 ): Match[] {
-  const today = dayjs();
+  const today = new Date();
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-  /*Filter the data*/
-  const filteredMatches = matches.filter((match) => {
-    const isTennis =
+  return matches.filter((match) => {
+    const matchDate = new Date(match.startDate);
+
+	const isTennis =
       formData.sports.tennis && match.sport.toLowerCase() === "tennis";
     const isPadel =
       formData.sports.padel && match.sport.toLowerCase() === "padel";
     const isDate =
       formData.date === DATE_OPTIONS.AllTime ||
-      (formData.date === DATE_OPTIONS.Last3Months &&
-        today.diff(match.startDate, "month") <= 3) ||
+      (formData.date === DATE_OPTIONS.Last3Months && matchDate >= threeMonthsAgo) ||
       (formData.date === DATE_OPTIONS.CustomDate &&
-        formData.startDate &&
-        formData.endDate &&
-        dayjs(match.startDate).isBetween(
-          formData.startDate,
-          formData.endDate,
-          "day",
-          "[]"
-        ));
+        new Date(formData.startDate) <= matchDate &&
+        matchDate <= new Date(formData.endDate));
     const isUser =
       formData.user === "0" ||
       match.teams.some((team) =>
         team.players.some((player) => player.userId === formData.user)
       );
+
     return (isTennis || isPadel) && isDate && isUser;
   });
-
-  return filteredMatches;
 }
 
 export function formatObjectToDownload(
@@ -147,6 +120,7 @@ export function formatObjectToDownload(
         return `Team ${index + 1}: ${teamPlayers.join(" and ")}`;
       })
       .join(", ");
+
     return {
       Sport: match.sport,
       Day: day,
