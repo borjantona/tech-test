@@ -7,11 +7,6 @@ export interface MatchesUsers {
   users: User[];
 }
 
-/**
- * Exports the users and matches to prepare the download CSV functionality
- *
- *
- */
 function useMatchesUsers(): MatchesUsers {
   const [users, setUsers] = useState<User[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);

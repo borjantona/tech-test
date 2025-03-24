@@ -17,12 +17,9 @@ import {
 } from "@/lib/utils/utils";
 import { useMatchesUsers } from "@/lib/hooks/useMatchesUsers";
 import { DATE_OPTIONS } from "@/lib/utils/utils";
+import { usePtDate } from "@/lib/hooks/usePtDate";
 
 export type Sport = "tennis" | "padel";
-
-const today = new Date().toISOString().split("T")[0];
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
 
 export default function MatchesDownloadForm() {
   const [formData, setFormData] = useState<FormDataInterface>({
@@ -38,6 +35,7 @@ export default function MatchesDownloadForm() {
 
   const [error, setError] = useState("");
   const { matches, users } = useMatchesUsers();
+  const { todayString } = usePtDate();
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -135,7 +133,7 @@ export default function MatchesDownloadForm() {
             type="date"
             InputLabelProps={{ shrink: true }}
             value={formData.startDate}
-            inputProps={{ max: today }}
+            inputProps={{ max: todayString }}
             onChange={(e) => {handleDateChange("startDate", e.target.value)}}
           />
           <TextField
@@ -143,7 +141,7 @@ export default function MatchesDownloadForm() {
             type="date"
             InputLabelProps={{ shrink: true }}
             value={formData.endDate}
-            inputProps={{ max: today }}
+            inputProps={{ max: todayString }}
             onChange={(e) => {handleDateChange("endDate", e.target.value)}}
           />
         </Stack>
