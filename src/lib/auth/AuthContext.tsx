@@ -1,7 +1,7 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { TokensData, UserData } from "../auth/types";
 import { AuthProviderProps } from "./AuthProvider";
-import { useApiFetcher } from "../api";
+import { useUserFetch } from "../api/useUserFetch";
 
 export interface AuthContextValue {
   /**
@@ -45,7 +45,14 @@ function AuthContextProvider(props: AuthContextProviderProps) {
     undefined
   );
 
-  const fetcher = useApiFetcher();
+  const refreshUserTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const { refreshUserToken } = useUserFetch({
+    currentUser,
+    tokens,
+    setTokens,
+    setCurrentUser,
+  });
 
   useEffect(() => {
     if (initialTokens instanceof Promise) {
@@ -64,52 +71,27 @@ function AuthContextProvider(props: AuthContextProviderProps) {
   }, [initialTokens]);
 
   useEffect(() => {
-    if (tokens !== null && tokens) {
-      const fetchUser = async (token: string) => {
-        const res = await fetcher(
-          "GET /v1/users/me",
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (!res.ok) {
-          if (res.status === 403) {
-            const resRefresh = await fetcher(
-              "POST /v3/auth/refresh",
-              { data: { refreshToken: tokens.refresh } },
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            if (!resRefresh.ok) {
-              setCurrentUser(null);
-              throw new Error("No refresh token available");
-            }
-            setTokens({
-              access: resRefresh.data.accessToken,
-              accessExpiresAt: resRefresh.data.accessTokenExpiresAt,
-              refresh: resRefresh.data.refreshToken,
-              refreshExpiresAt: resRefresh.data.refreshTokenExpiresAt,
-            });
-          }
-          throw new Error(res.data.message);
-        }
-        setCurrentUser({
-          userId: res.data.userId,
-          name: res.data.displayName,
-          email: res.data.email ?? "",
-        });
-      };
-      fetchUser(tokens.access).catch((err: Error) => {
-        console.error(err);
-      });
-    }
-  }, [tokens, fetcher, setCurrentUser]);
-
-  useEffect(() => {
     if (tokens !== undefined) {
       if (typeof onAuthChange === "function") {
         onAuthChange(tokens);
       }
     }
-  }, [tokens, onAuthChange]);
+    if (refreshUserTimer.current !== null) {
+      clearTimeout(refreshUserTimer.current);
+    }
+    if (tokens !== null && tokens !== undefined) {
+      const expiresAt = new Date(tokens.accessExpiresAt).getTime() - Date.now();
+      refreshUserTimer.current = setTimeout(() => {
+        refreshUserToken()
+          .then(() => {
+            console.log("User token refreshed");
+          })
+          .catch((error) => {
+            console.error("Error refreshing user token", error);
+          });
+      }, expiresAt - 1000);
+    }
+  }, [tokens, onAuthChange, refreshUserToken]);
 
   const value = {
     currentUser,
