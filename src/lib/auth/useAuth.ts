@@ -28,17 +28,17 @@ function useAuth(): Auth {
       if (!res.ok) {
         throw new Error(res.data.message);
       }
-        setTokens({
-          access: res.data.accessToken,
-          accessExpiresAt: res.data.accessTokenExpiresAt,
-          refresh: res.data.refreshToken,
-          refreshExpiresAt: res.data.refreshTokenExpiresAt,
-        });
+      setTokens({
+        access: res.data.accessToken,
+        accessExpiresAt: res.data.accessTokenExpiresAt,
+        refresh: res.data.refreshToken,
+        refreshExpiresAt: res.data.refreshTokenExpiresAt,
+      });
       return Promise.resolve();
     },
     logout() {
       if (tokens === null) {
-        throw new Error("Not user to logout.");
+        throw new Error("No user to logout.");
       }
       setTokens(null);
       setCurrentUser(null);

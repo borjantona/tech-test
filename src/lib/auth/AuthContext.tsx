@@ -22,8 +22,8 @@ export interface AuthContextValue {
   /**
    * Setters for the tokens and the currentUser data
    */
-  setTokens: ((tokens: TokensData | null) => void);
-  setCurrentUser: ((user: UserData | undefined | null) => void);
+  setTokens: (tokens: TokensData | null) => void;
+  setCurrentUser: (user: UserData | undefined | null) => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -49,7 +49,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
 
   useEffect(() => {
     if (initialTokens instanceof Promise) {
-      (initialTokens)
+      initialTokens
         .then((res) => {
           if (res !== null) {
             setTokens(res);
@@ -79,6 +79,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
               { headers: { Authorization: `Bearer ${token}` } }
             );
             if (!resRefresh.ok) {
+              setCurrentUser(null);
               throw new Error("No refresh token available");
             }
             setTokens({
