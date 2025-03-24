@@ -36,7 +36,7 @@ The test is divided in three mandatory tasks and one optional. The whole test is
 - [x] **1.** Technical work: filling the gaps in the auth flow. [Link](./docs/task-01.md)
 - [x] **2.** Product feature request: download all matches. [Link](./docs/task-02.md)
 - [x] **3.** Pull Request review: showing correct dates. [Link](./docs/task-03.md)
-- [ ] **4.** _(optional)_ Technical work: auth refresh flow. [Link](./docs/task-04.md)
+- [x] **4.** _(optional)_ Technical work: auth refresh flow. [Link](./docs/task-04.md)
 
 ### Dos and don'ts
 
