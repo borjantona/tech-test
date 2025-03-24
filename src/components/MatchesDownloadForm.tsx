@@ -6,14 +6,21 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { FormEvent,  useState } from "react";
+import { FormEvent, useState } from "react";
 import "./MatchesDownloadForm.css";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-import { downloadCsv, downloadObjectToCsv, filterMatches, formatObjectToDownload, downloadObjectInterface, FormDataInterface } from "@/lib/utils/utils";
+import {
+  downloadCsv,
+  downloadObjectToCsv,
+  filterMatches,
+  formatObjectToDownload,
+  downloadObjectInterface,
+  FormDataInterface,
+} from "@/lib/utils/utils";
 import { useMatchesUsers } from "@/lib/hooks/useMatchesUsers";
 import { DATE_OPTIONS } from "@/lib/utils/utils";
 
@@ -22,7 +29,6 @@ export type Sport = "tennis" | "padel";
 const today = dayjs();
 const yesterday = dayjs().subtract(1, "day");
 dayjs.extend(isBetween);
-
 
 export default function MatchesDownloadForm() {
   /* Hooks */
@@ -36,10 +42,9 @@ export default function MatchesDownloadForm() {
     startDate: null,
     endDate: null,
   });
-  
+
   const [error, setError] = useState("");
   const { matches, users } = useMatchesUsers();
-  
 
   /* Handlers for changing the state of the filters */
   const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +82,8 @@ export default function MatchesDownloadForm() {
     const filteredMatches = filterMatches(matches, formData);
 
     /*Format the data to download*/
-    const objectToDownload: downloadObjectInterface[] = formatObjectToDownload(filteredMatches);
+    const objectToDownload: downloadObjectInterface[] =
+      formatObjectToDownload(filteredMatches);
 
     try {
       downloadCsv(downloadObjectToCsv(objectToDownload), "matches.csv");
@@ -124,8 +130,7 @@ export default function MatchesDownloadForm() {
           label="Date"
           name="date"
           value={formData.date}
-          sx={{ margin: "1rem 0" }}
-          className="select"
+          sx={{ margin: "1rem 0", width: "100%" }}
           defaultValue={DATE_OPTIONS.AllTime}
           onChange={handleSelectChange}
         >
@@ -165,8 +170,7 @@ export default function MatchesDownloadForm() {
           select
           label="Users"
           name="user"
-          className="select"
-          sx={{ margin: "2rem 0" }}
+          sx={{ margin: "2rem 0", width: "100%" }}
           value={formData.user}
           onChange={handleSelectChange}
           defaultValue={"0"}
@@ -181,7 +185,7 @@ export default function MatchesDownloadForm() {
           })}
         </TextField>
 
-        <div className="error">{error}</div>
+        <div style={{color: "red", marginBottom: "1rem"}}>{error}</div>
 
         <Button
           type="submit"
