@@ -43,7 +43,7 @@ function useAuth(): Auth {
       setTokens(null);
       setCurrentUser(null);
       return Promise.resolve();
-    },
+    }
   };
 }
 
