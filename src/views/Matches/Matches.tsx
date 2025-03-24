@@ -54,15 +54,15 @@ export function Matches(props: MatchesProps) {
   const matches: Match[] = query.data.matches;
   const total: number = query.data.total;
 
-  const [open, setOpen] = useState(false);
+  const [openCSVModal, setOpenCSVModal] = useState(false);
   const downloadMatchesLabel = "DOWNLOAD MATCHES";
 
   const handleModalOpen = () => {
-    setOpen(true);
+    setOpenCSVModal(true);
   };
 
   const handleModalClose = () => {
-    setOpen(false);
+    setOpenCSVModal(false);
   };
 
   return (
@@ -154,7 +154,7 @@ export function Matches(props: MatchesProps) {
       </Stack>
       <PtModal
         label={downloadMatchesLabel}
-        open={open}
+        open={openCSVModal}
         onClose={handleModalClose}
       >
         <MatchesDownloadForm />
