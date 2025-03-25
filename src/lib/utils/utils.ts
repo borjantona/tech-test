@@ -18,12 +18,12 @@ export enum DATE_OPTIONS {
   CustomDate = "Custom date",
 }
 
-export interface downloadObjectInterface {
-  Sport: string;
-  Day: string;
-  "Start hour": string;
-  "End hour": string;
-  Players: string;
+export interface DownloadObjectInterface {
+  sport: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  players: string;
 }
 
 export interface FormDataInterface {
@@ -38,7 +38,7 @@ export interface FormDataInterface {
 }
 
 export function downloadObjectToCsv(
-  data: downloadObjectInterface[],
+  data: DownloadObjectInterface[],
   delimiter = ","
 ): string {
   if (!Array.isArray(data) || data.length === 0) {
@@ -108,7 +108,7 @@ export function filterMatches(
 
 export function formatObjectToDownload(
   filteredMatches: Match[]
-): downloadObjectInterface[] {
+): DownloadObjectInterface[] {
   return filteredMatches.map((match) => {
     const day = getLocale(match.startDate, "L");
     const startTime = getLocale(match.startDate, "LT");
@@ -122,11 +122,11 @@ export function formatObjectToDownload(
       .join(", ");
 
     return {
-      Sport: match.sport,
-      Day: day,
-      "Start hour": startTime,
-      "End hour": endTime,
-      Players: players,
+      sport: match.sport,
+      day,
+      startTime,
+      endTime,
+      players,
     };
   });
 }

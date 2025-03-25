@@ -12,12 +12,12 @@ import {
   downloadObjectToCsv,
   filterMatches,
   formatObjectToDownload,
-  downloadObjectInterface,
+  DownloadObjectInterface,
   FormDataInterface,
 } from "@/lib/utils/utils";
 import { useMatchesUsers } from "@/lib/hooks/useMatchesUsers";
 import { DATE_OPTIONS } from "@/lib/utils/utils";
-import { usePtDate } from "@/lib/hooks/usePtDate";
+import { ptDate } from "@/lib/utils/ptDate";
 
 export type Sport = "tennis" | "padel";
 
@@ -35,7 +35,8 @@ export default function MatchesDownloadForm() {
 
   const [error, setError] = useState("");
   const { matches, users } = useMatchesUsers();
-  const { todayString } = usePtDate();
+
+  const { todayString } = ptDate();
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -66,9 +67,9 @@ export default function MatchesDownloadForm() {
   const onDownloadMatches = (event: FormEvent) => {
     event.preventDefault();
 
-	const filteredMatches = filterMatches(matches, formData);
+    const filteredMatches = filterMatches(matches, formData);
 
-    const objectToDownload: downloadObjectInterface[] =
+    const objectToDownload: DownloadObjectInterface[] =
       formatObjectToDownload(filteredMatches);
 
     try {
@@ -134,7 +135,9 @@ export default function MatchesDownloadForm() {
             InputLabelProps={{ shrink: true }}
             value={formData.startDate}
             inputProps={{ max: todayString }}
-            onChange={(e) => {handleDateChange("startDate", e.target.value)}}
+            onChange={(e) => {
+              handleDateChange("startDate", e.target.value);
+            }}
           />
           <TextField
             label="End Date"
@@ -142,7 +145,9 @@ export default function MatchesDownloadForm() {
             InputLabelProps={{ shrink: true }}
             value={formData.endDate}
             inputProps={{ max: todayString }}
-            onChange={(e) => {handleDateChange("endDate", e.target.value)}}
+            onChange={(e) => {
+              handleDateChange("endDate", e.target.value);
+            }}
           />
         </Stack>
       )}
@@ -178,4 +183,3 @@ export default function MatchesDownloadForm() {
     </form>
   );
 }
- 

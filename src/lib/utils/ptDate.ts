@@ -1,11 +1,11 @@
 
-export interface MatchesUsers {
+export interface PtDate {
   today: Date;
   todayString: string;
   yesterday: Date;
 }
 
-function usePtDate(): MatchesUsers {
+function ptDate(): PtDate {
   const today = new Date();
   const todayString = today.toISOString().split("T")[0];
   const yesterday = new Date();
@@ -18,4 +18,4 @@ function usePtDate(): MatchesUsers {
   };
 }
 
-export { usePtDate };
+export { ptDate };
