@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 import { TokensData, UserData } from "../auth/types";
 import { AuthProviderProps } from "./AuthProvider";
-import { useUserFetch } from "../api/useUserFetch";
+import { useUserFetch } from "./useUserFetch";
 
 export interface AuthContextValue {
   /**

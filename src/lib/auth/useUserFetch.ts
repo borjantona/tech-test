@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from "react";
-import { useApiFetcher } from "./useApiFetcher";
-import { AuthContextValue } from "../auth/AuthContext";
+import { useApiFetcher } from "../api/useApiFetcher";
+import { AuthContextValue } from "./AuthContext";
 
 interface UserFetch {
   fetchUser: () => Promise<void>;
@@ -44,7 +44,7 @@ function useUserFetch(context: AuthContextValue): UserFetch {
     );
     if (!res.ok) {
       if (res.status === 403) {
-        await refreshUserToken();
+        console.error("User not authorized");
       }
       throw new Error(res.data.message);
     }
