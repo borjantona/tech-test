@@ -53,7 +53,7 @@ function useUserFetch(context: AuthContextValue): UserFetch {
       name: res.data.displayName,
       email: res.data.email ?? "",
     });
-  }, [tokens, fetcher, setCurrentUser, refreshUserToken]);
+  }, [tokens, fetcher, setCurrentUser]);
 
   useEffect(() => {
     if (tokens !== null && tokens) {
