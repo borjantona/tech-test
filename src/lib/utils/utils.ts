@@ -21,8 +21,8 @@ export enum DATE_OPTIONS {
 export interface DownloadObjectInterface {
   sport: string;
   day: string;
-  startTime: string;
-  endTime: string;
+  start: string;
+  end: string;
   players: string;
 }
 
@@ -60,7 +60,14 @@ export function downloadObjectToCsv(
       .join(delimiter)
   );
 
-  return [headers.join(delimiter), ...csvRows].join("\n");
+  return [
+    headers.map((header) => capitalizeFirstLetter(header)).join(delimiter),
+    ...csvRows,
+  ].join("\n");
+}
+
+function capitalizeFirstLetter(val: string): string {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
 
 export function downloadCsv(csvData: string, filename: string) {
@@ -86,13 +93,14 @@ export function filterMatches(
   return matches.filter((match) => {
     const matchDate = new Date(match.startDate);
 
-	const isTennis =
+    const isTennis =
       formData.sports.tennis && match.sport.toLowerCase() === "tennis";
     const isPadel =
       formData.sports.padel && match.sport.toLowerCase() === "padel";
     const isDate =
       formData.date === DATE_OPTIONS.AllTime ||
-      (formData.date === DATE_OPTIONS.Last3Months && matchDate >= threeMonthsAgo) ||
+      (formData.date === DATE_OPTIONS.Last3Months &&
+        matchDate >= threeMonthsAgo) ||
       (formData.date === DATE_OPTIONS.CustomDate &&
         new Date(formData.startDate) <= matchDate &&
         matchDate <= new Date(formData.endDate));
@@ -111,8 +119,8 @@ export function formatObjectToDownload(
 ): DownloadObjectInterface[] {
   return filteredMatches.map((match) => {
     const day = getLocale(match.startDate, "L");
-    const startTime = getLocale(match.startDate, "LT");
-    const endTime = getLocale(match.endDate, "LT");
+    const start = getLocale(match.startDate, "LT");
+    const end = getLocale(match.endDate, "LT");
 
     const players = match.teams
       .map((team, index) => {
@@ -124,8 +132,8 @@ export function formatObjectToDownload(
     return {
       sport: match.sport,
       day,
-      startTime,
-      endTime,
+      start,
+      end,
       players,
     };
   });
