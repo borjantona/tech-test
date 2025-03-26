@@ -65,6 +65,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
         }
       };
       getInitialTokens().catch((error) => {
+		setCurrentUser(null);
         console.log(error);
       });
     }
