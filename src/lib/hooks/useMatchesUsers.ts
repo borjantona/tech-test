@@ -12,12 +12,8 @@ function useMatchesUsers(): MatchesUsers {
   const [matches, setMatches] = useState<Match[]>([]);
   const fetcher = useApiFetcher();
 
-
   useEffect(() => {
-    const getAllData = async (): Promise<{
-      matches: Match[];
-      users: User[];
-    }> => {
+    const fetchData = async () => {
       const matches: Match[] = [];
       let users: User[] = [];
       let page = 0;
@@ -28,10 +24,9 @@ function useMatchesUsers(): MatchesUsers {
         const res = await fetcher("GET /v1/matches", { page, size });
         if (!res.ok) {
           throw new Error(res.data.message);
-        } else {
-          matches.push(...res.data);
-          results = res.data.length;
         }
+        matches.push(...res.data);
+        results = res.data.length;
         page++;
       }
 
@@ -42,22 +37,16 @@ function useMatchesUsers(): MatchesUsers {
             index === self.findIndex((u) => u.userId === user.userId)
         );
 
-      return { matches, users };
+      setMatches(matches);
+      setUsers(users);
     };
-    getAllData()
-      .then((data) => {
-        setMatches(data.matches);
-        setUsers(data.users);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
+    fetchData().catch((error: Error) => {
+      console.error(error);
+    });
   }, [fetcher]);
 
-  return {
-    matches,
-    users,
-  };
+  return { matches, users };
 }
 
 export { useMatchesUsers };

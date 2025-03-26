@@ -56,17 +56,17 @@ function AuthContextProvider(props: AuthContextProviderProps) {
 
   useEffect(() => {
     if (initialTokens instanceof Promise) {
-      initialTokens
-        .then((res) => {
-          if (res !== null) {
-            setTokens(res);
-          } else {
-            setCurrentUser(null);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      const getInitialTokens = async () => {
+        const tokens = await initialTokens;
+        if (tokens !== null) {
+          setTokens(tokens);
+        } else {
+          setCurrentUser(null);
+        }
+      };
+      getInitialTokens().catch((error) => {
+        console.log(error);
+      });
     }
   }, [initialTokens]);
 
@@ -82,13 +82,12 @@ function AuthContextProvider(props: AuthContextProviderProps) {
     if (tokens !== null && tokens !== undefined) {
       const expiresAt = new Date(tokens.accessExpiresAt).getTime() - Date.now();
       refreshUserTimer.current = setTimeout(() => {
-        refreshUserToken()
-          .then(() => {
-            console.log("User token refreshed");
-          })
-          .catch((error) => {
-            console.error("Error refreshing user token", error);
-          });
+        const refresh = async () => {
+          await refreshUserToken();
+        };
+        refresh().catch((error) => {
+          console.error("Error refreshing user token", error);
+        });
       }, expiresAt - 1000);
     }
   }, [tokens, onAuthChange, refreshUserToken]);
