@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { TokensData, UserData } from "../auth/types";
 import { AuthProviderProps } from "./AuthProvider";
 import { useUserFetch } from "./useUserFetch";
@@ -54,6 +54,18 @@ function AuthContextProvider(props: AuthContextProviderProps) {
     setCurrentUser,
   });
 
+  const setTimeoutRefreshToken = useCallback((tokens: TokensData) => {
+    const expiresAt = new Date(tokens.accessExpiresAt).getTime() - Date.now();
+    refreshUserTimer.current = setTimeout(() => {
+      const refresh = async () => {
+        await refreshUserToken();
+      };
+      refresh().catch((error) => {
+        console.error("Error refreshing user token", error);
+      });
+    }, expiresAt - 1000);
+  }, [refreshUserToken]);
+
   useEffect(() => {
     if (initialTokens instanceof Promise) {
       const getInitialTokens = async () => {
@@ -65,7 +77,7 @@ function AuthContextProvider(props: AuthContextProviderProps) {
         }
       };
       getInitialTokens().catch((error) => {
-		setCurrentUser(null);
+        setCurrentUser(null);
         console.log(error);
       });
     }
@@ -81,17 +93,9 @@ function AuthContextProvider(props: AuthContextProviderProps) {
       clearTimeout(refreshUserTimer.current);
     }
     if (tokens !== null && tokens !== undefined) {
-      const expiresAt = new Date(tokens.accessExpiresAt).getTime() - Date.now();
-      refreshUserTimer.current = setTimeout(() => {
-        const refresh = async () => {
-          await refreshUserToken();
-        };
-        refresh().catch((error) => {
-          console.error("Error refreshing user token", error);
-        });
-      }, expiresAt - 1000);
+      setTimeoutRefreshToken(tokens);
     }
-  }, [tokens, onAuthChange, refreshUserToken]);
+  }, [tokens, onAuthChange, setTimeoutRefreshToken]);
 
   const value = {
     currentUser,
