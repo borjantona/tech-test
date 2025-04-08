@@ -42,7 +42,7 @@
     "localforage": "^1.10.0",
     "msw": "^2.2.1",
     "typescript": "^5.2.2",
-    "vite": "^5.4.14",
+    "vite": "^5.4.17",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^1.6.1"
   },
