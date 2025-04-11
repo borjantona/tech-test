@@ -13,7 +13,11 @@ function useUserFetch(context: AuthContextValue): UserFetch {
   const { tokens, setTokens, setCurrentUser } = context;
 
   const refreshUserToken = useCallback(async () => {
-    if (tokens?.refresh) {
+    if (!tokens?.access || !tokens.refresh) {
+      setCurrentUser(null);
+      throw new Error("Invalid tokens");
+    }
+    if (tokens.refresh) {
       const res = await fetcher(
         "POST /v3/auth/refresh",
         { data: { refreshToken: tokens.refresh } },
@@ -37,10 +41,14 @@ function useUserFetch(context: AuthContextValue): UserFetch {
   }, [tokens, setTokens, setCurrentUser, fetcher]);
 
   const fetchUser = useCallback(async () => {
+    if (!tokens?.access) {
+      throw new Error("Access token missing");
+    }
+
     const res = await fetcher(
       "GET /v1/users/me",
       {},
-      { headers: { Authorization: `Bearer ${tokens?.access}` } }
+      { headers: { Authorization: `Bearer ${tokens.access}` } }
     );
     if (!res.ok) {
       if (res.status === 403) {
